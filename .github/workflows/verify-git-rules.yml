@@ -1,0 +1,70 @@
+name: Verify Git Workflow Rules
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'main'
+      - 'master'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  verify-repository-rules:
+    name: Check Branches and Commits Standard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1. Hubinta in ay jiraan ugu yaraan 2 Feature Branches
+      - name: Check for At Least 2 Feature Branches
+        run: |
+          git fetch --all
+          FEATURE_COUNT=$(git branch -r | grep -E 'origin/feature/' | wc -l)
+          echo "Feature branches lagu helay: $FEATURE_COUNT"
+
+          if [ "$FEATURE_COUNT" -lt 2 ]; then
+            echo "::error::Waxaa laga chashay $FEATURE_COUNT feature branch. Mashruucu wuxuu u baahan yahay ugu yaraan 2 feature branches (e.g., feature/login, feature/user-profile)!"
+            exit 1
+          fi
+          echo "Feature branches-ku way buuxiyeen shurudda!"
+
+      # 2. Hubinta in Branch-ku leeyahay Ugu Yaraan 5 Commits
+      - name: Check Commit Count (At Least 5)
+        run: |
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          echo "Wadar commit-yada branch-kan: $COMMIT_COUNT"
+
+          if [ "$COMMIT_COUNT" -lt 5 ]; then
+            echo "::error::Branch-kani wuxuu leeyahay oo kaliya $COMMIT_COUNT commit(s). Waxaa looga baahan yahay ugu yaraan 5 commits!"
+            exit 1
+          fi
+          echo "Tirada commit-yadu way buuxisay shuruudda!"
+
+      # 3. Hubinta in Commit kasta uu yahay "Real Step" (Sharrah buuxa leeyahay)
+      - name: Check Commit Quality (Real Steps)
+        run: |
+          echo "Dhoowrka commit ee ugu dambeeya oo la baarayo..."
+          
+          # Soo saar 5-ta commit ee ugu dambeysay
+          git log -n 5 --pretty=format:"%s" | while read -r msg; do
+            echo "Eegaya commit: '$msg'"
+            
+            # Hubi inuu ka badan yahay 10 xarfo
+            if [ ${#msg} -lt 10 ]; then
+              echo "::error::Commit message-ka '$msg' aad ayuu u gaaban yahay (Real step ma aha)!"
+              exit 1
+            fi
+            
+            # Hubi inuusan ahayn eray aan micno lahayn
+            if echo "$msg" | grep -iqE '^(fix|test|update|wip|changes)$'; then
+              echo "::error::Commit message-ka '$msg' waa mid aad u guud. Fadlan qor 'real step' oo sharraxaya shaqada la qabtay!"
+              exit 1
+            fi
+          done
+          
+          echo "Commit-yadu oo dhan waa 'real steps' sax ah!"
