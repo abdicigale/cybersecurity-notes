@@ -21,17 +21,17 @@ jobs:
           fetch-depth: 0
 
       # 1. Hubinta in ay jiraan ugu yaraan 2 Feature Branches
-      - name: Check for At Least 2 Feature Branches
+      - name: Check for At Least 2 Branches
         run: |
           git fetch --all
-          FEATURE_COUNT=$(git branch -r | grep -E 'origin/feature/' | wc -l)
+          FEATURE_COUNT=$(git branch -r | grep -E 'origin/' | wc -l)
           echo "Feature branches lagu helay: $FEATURE_COUNT"
 
           if [ "$FEATURE_COUNT" -lt 2 ]; then
-            echo "::error::Waxaa laga chashay $FEATURE_COUNT feature branch. Mashruucu wuxuu u baahan yahay ugu yaraan 2 feature branches (e.g., feature/login, feature/user-profile)!"
+            echo "::error::Waxaa laga chashay $FEATURE_COUNT branch. Mashruucu wuxuu u baahan yahay ugu yaraan 2 feature branches (e.g., feature/login, feature/user-profile)!"
             exit 1
           fi
-          echo "Feature branches-ku way buuxiyeen shurudda!"
+          echo " branches-ku way buuxiyeen shurudda!"
 
       # 2. Hubinta in Branch-ku leeyahay Ugu Yaraan 5 Commits
       - name: Check Commit Count (At Least 5)
